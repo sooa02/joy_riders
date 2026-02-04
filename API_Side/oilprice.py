@@ -1,40 +1,27 @@
+import xml.etree.ElementTree as ET
+import urllib.request
+
 class ApiOil:
-    def getdata(self, oil_type: str) -> int:
-        import xml.etree.ElementTree as ET
+    def getdata(self, oil_type: str) -> float:
+        url = "https://www.opinet.co.kr/api/avgAllPrice.do?out=xml&code=F260204142"
 
-        xml_data = """
-        <RESULT>
-            <OIL>
-                <TRADE_DT>20260204</TRADE_DT>
-                <PRODNM>고급휘발유</PRODNM>
-                <PRICE>1929.12</PRICE>
-            </OIL>
-            <OIL>
-                <TRADE_DT>20260204</TRADE_DT>
-                <PRODNM>휘발유</PRODNM>
-                <PRICE>1687.54</PRICE>
-            </OIL>
-            <OIL>
-                <TRADE_DT>20260204</TRADE_DT>
-                <PRODNM>자동차용경유</PRODNM>
-                <PRICE>1581.53</PRICE>
-            </OIL>
-        </RESULT>
-        """
+        # 1. 오피넷 API 호출
+        with urllib.request.urlopen(url) as response:
+            xml_data = response.read().decode("utf-8")
 
+        # 2. XML 데이터 파싱
         root = ET.fromstring(xml_data)
 
-        for oil in root.findall('OIL'):
-            prod_name = oil.find('PRODNM').text
-            price = oil.find('PRICE').text
+        # 3. 유종 이름으로 가격 찾기
+        for oil in root.findall("OIL"):
+            prod_name = oil.find("PRODNM").text
+            price = oil.find("PRICE").text
 
             if prod_name == oil_type:
-                return int(float(price))
+                return float(price)  # 정수 가격 반환
 
-        return -1
+        # 4. 해당 유종이 없을 경우
+        return -1.0
 
 
-if __name__ == "__main__":
-    api = ApiOil()
-    print(api.getdata("휘발유"))
-    print(api.getdata("자동차용경유"))
+apioil = ApiOil()
